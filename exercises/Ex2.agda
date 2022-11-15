@@ -101,14 +101,16 @@ postulate
 -}
 
 +-identityʳ : (n : ℕ) → n + zero ≡ n
-+-identityʳ n = {!!}
++-identityʳ zero = refl
++-identityʳ (suc n) = cong suc (+-identityʳ n)
 
 +-identityˡ : (n : ℕ) → zero + n ≡ n
-+-identityˡ n = {!!}
++-identityˡ zero = refl
++-identityˡ (suc n) = sym refl
 
 +-suc : (n m : ℕ) → n + (suc m) ≡ suc (n + m)
-+-suc n m = {!!}
-
++-suc zero m = cong suc refl
++-suc (suc n) m = cong suc (+-suc n m)
 
 ----------------
 -- Exercise 1 --
@@ -141,7 +143,9 @@ data Maybe (A : Set) : Set where
   nothing : Maybe A
 
 lookup : {A : Set} {n : ℕ} → Vec A n → ℕ → Maybe A
-lookup xs i = {!!}
+lookup [] _ = nothing
+lookup (x ∷ xs) zero = just x
+lookup (x ∷ xs) (suc i) = lookup xs i
 
 
 ----------------
@@ -179,7 +183,18 @@ lookup-totalᵀ : {n : ℕ}
               → i < n                           -- `i` in `{0,1,...,n-1}`
               → lookup xs i ≡ just ⋆
              
-lookup-totalᵀ xs i p = {!!}
+lookup-totalᵀ (⋆ ∷ xs) zero (s≤s p) = 
+   begin
+    lookup (⋆ ∷ xs) zero
+  ≡⟨⟩
+    just ⋆
+  ∎
+lookup-totalᵀ (⋆ ∷ xs) (suc i) (s≤s p) = 
+   begin
+      lookup (⋆ ∷ xs) (suc i) ≡⟨⟩ 
+      lookup xs i  ≡⟨ lookup-totalᵀ xs i p ⟩
+      just ⋆ 
+   ∎
 
 {-
    Note: In the standard library, `⊤` is defined as a record type. Here

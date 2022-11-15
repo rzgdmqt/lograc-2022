@@ -63,8 +63,9 @@ data Bool : Set where
 -}
 
 _⊕_ : Bool → Bool → Bool
-b ⊕ b' = {!!}
-
+b ⊕ false = b
+false ⊕ b' = b'
+_ ⊕ _ = false
 {-
    You can test whether your definition computes correctly by using
    the `C-c C-n` command, which uses Agda's normalisation engine to
@@ -95,7 +96,7 @@ data ℕ : Set where
 -}
 
 incr : ℕ → ℕ
-incr n = {!!}
+incr n = (suc n)
 
 {-
    Define a function that decrements a number by one. Give the definition
@@ -103,7 +104,8 @@ incr n = {!!}
 -}
 
 decr : ℕ → ℕ
-decr n = {!!}
+decr zero = zero
+decr (suc n) = n
 
 {-
    Define a function that triples the value of a given number.
@@ -111,7 +113,8 @@ decr n = {!!}
 -}
 
 triple : ℕ → ℕ
-triple n = {!!}
+triple zero = zero
+triple (suc n) = suc (suc (suc (triple n)))
 
 
 ----------------
@@ -142,7 +145,9 @@ infixl 7  _*_
 -}
 
 _^_ : ℕ → ℕ → ℕ
-m ^ n = {!!}
+zero ^ n = 0
+suc m ^ zero = 1
+suc m ^ suc n = (suc m) * (suc m) ^ n
 
 infixl 8  _^_
 
@@ -178,7 +183,9 @@ infixl 20 _I
 -}
 
 b-incr : Bin → Bin
-b-incr b = {!!}
+b-incr ⟨⟩ = ⟨⟩ I
+b-incr (b O) = b I
+b-incr (b I) = (b-incr b) O
 
 
 ----------------
@@ -195,10 +202,13 @@ b-incr b = {!!}
 -}
 
 to : ℕ → Bin
-to n = {!!}
+to zero = ⟨⟩ O
+to (suc n) = b-incr (to n)
 
 from : Bin → ℕ
-from b = {!!}
+from ⟨⟩ = zero
+from (b O) = 2 * (from b)
+from (b I) = 1 + 2 * (from b)
 
 
 ----------------
@@ -218,8 +228,8 @@ data Even : ℕ → Set where
 -}
 
 data Even₂ : Bin → Set where
-  {- EXERCISE: add the constructors for this inductive predicate here -}
-
+   even-IO : {b : Bin} → Even₂ (b O)  
+ 
 
 ----------------
 -- Exercise 7 --
@@ -231,8 +241,11 @@ data Even₂ : Bin → Set where
 -}
 
 to-even : {n : ℕ} → Even n → Even₂ (to n)
-to-even p = {!!}
-
+to-even even-z = even-IO
+to-even (even-ss {n} p) = b-incr-incr-even (to-even p)
+   where
+      b-incr-incr-even : {b : Bin} → Even₂ b → Even₂ (b-incr (b-incr b))
+      b-incr-incr-even even-IO = even-IO
 
 ----------------
 -- Exercise 8 --
@@ -252,7 +265,10 @@ to-even p = {!!}
 -}
 
 data NonEmptyBin : Bin → Set where
-  {- EXERCISE: add the constructors for this inductive predicate here -}
+   neO : {b : Bin} → NonEmptyBin (b O)
+   neI : {b : Bin} → NonEmptyBin (b I)
+   
+   {- EXERCISE: add the constructors for this inductive predicate here -}
 
 {-
    To verify that `NonEmptyBin ⟨⟩` is indeed not inhabited as intended,
@@ -263,7 +279,7 @@ data NonEmptyBin : Bin → Set where
 data ⊥ : Set where
 
 ⟨⟩-empty : NonEmptyBin ⟨⟩ → ⊥
-⟨⟩-empty p = {!!}
+⟨⟩-empty ()
 
 
 ----------------
@@ -280,8 +296,13 @@ data ⊥ : Set where
 -}
 
 from-ne : (b : Bin) → NonEmptyBin b → ℕ
-from-ne b p = {!!}
-
+from-ne (⟨⟩ O) neO = zero
+from-ne (b O O) neO = 2 * (from-ne (b O) neO)
+from-ne (b I O) neO = 2 * (from-ne (b I) neI)
+from-ne (⟨⟩ I) neI = 1
+from-ne (b O I) neI = 2 * (from-ne (b O) neO) + 1
+from-ne (b I I) neI = 2 * (from-ne (b I) neI) + 1
+ 
 
 -----------------
 -- Exercise 10 --
@@ -313,7 +334,8 @@ infixr 5 _∷_
 -}
 
 map : {A B : Set} → (A → B) → List A → List B
-map f xs = {!!}
+map f [] = []
+map f (x ∷ xs) = (f x) ∷ (map f xs)
 
 
 -----------------
@@ -325,7 +347,8 @@ map f xs = {!!}
 -}
 
 length : {A : Set} → List A → ℕ
-length xs = {!!}
+length [] = 0
+length (x ∷ xs) = suc (length xs)
 
 -----------------
 -- Exercise 12 --
@@ -346,7 +369,8 @@ data _≡ᴺ_ : ℕ → ℕ → Set where
 -}
 
 map-≡ᴺ : {A B : Set} {f : A → B} → (xs : List A) → length xs ≡ᴺ length (map f xs)
-map-≡ᴺ xs = {!!}
+map-≡ᴺ [] = z≡ᴺz
+map-≡ᴺ (x ∷ xs) = s≡ᴺs (map-≡ᴺ xs)
 
 
 -----------------
@@ -370,6 +394,8 @@ infix 4 _≤_
 -}
 
 data _≤ᴸ_ {A : Set} : List A → List A → Set where
+   []≤ᴸxs : {xs : List A} → [] ≤ᴸ xs
+   xs≤ᴸys : {xs ys : List A} {x y : A} → xs ≤ᴸ ys → (x ∷ xs) ≤ᴸ (y ∷ ys)
   {- EXERCISE: add the constructors for this inductive relation here -}
 
 infix 4 _≤ᴸ_
@@ -385,10 +411,12 @@ infix 4 _≤ᴸ_
 -}
 
 length-≤ᴸ-≦ : {A : Set} {xs ys : List A} → xs ≤ᴸ ys → length xs ≤ length ys
-length-≤ᴸ-≦ p = {!!}
+length-≤ᴸ-≦ []≤ᴸxs = z≤n
+length-≤ᴸ-≦ (xs≤ᴸys p) = s≤s (length-≤ᴸ-≦ p)
 
 length-≤-≦ᴸ : {A : Set} (xs ys : List A) → length xs ≤ length ys → xs ≤ᴸ ys
-length-≤-≦ᴸ xs ys p = {!!}
+length-≤-≦ᴸ [] ys p = []≤ᴸxs
+length-≤-≦ᴸ (x ∷ xs) (x₁ ∷ ys) (s≤s p) = xs≤ᴸys (length-≤-≦ᴸ xs ys p)
 
 
 -----------------

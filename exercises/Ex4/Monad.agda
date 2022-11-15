@@ -49,8 +49,8 @@ open Eq.≡-Reasoning      using (begin_; _≡⟨⟩_; step-≡; _∎)
    the beginning of the ``Ex4.Monoid` module.
 -}
 
-open import Ex4.Monoid
 
+open import Ex4.Monoid
 
 ----------------
 -- Exercise 5 --
